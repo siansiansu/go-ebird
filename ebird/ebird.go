@@ -12,17 +12,55 @@ import (
 )
 
 const (
-	APITaxonomicForms       = "ref/taxon/forms/%s"
-	APIEbirdTaxonomy        = "ref/taxonomy/ebird"
+	APIEndpointBase = "https://api.ebird.org/v2"
+
+	// ref/region
 	APIEndointRegionInfo    = "ref/region/info/%s"
 	APIEndointSubRegionInfo = "ref/region/list/%s/%s"
-	APIEndpointBase         = "https://api.ebird.org/v2"
+
+	// ref/taxonomy
+	APIEndpointEbirdTaxonomy    = "ref/taxonomy/ebird"
+	APIEndpointTaxaLocaleCodes  = "ref/taxa-locales/ebird"
+	APIEndpointTaxonomicForms   = "ref/taxon/forms/%s"
+	APIEndpointTaxonomicGroups  = "ref/sppgroup/%s"
+	APIEndpointTaxonomyVersions = "ref/taxonomy/versions"
+
+	// ref/hotspot
+	APIEndpointHotspotInfo      = "ref/hotspot/info/%s"
+	APIEndpointHotspotsInRegion = "ref/hotspot/%s"
+	APIEndpointNearbyHotspots   = "ref/hotspot/geo"
+
+	// ref/geo
+	APIEndpointAdjacentRegions = "ref/adjacent/%s"
+
+	// product
+	APIEndpointChecklistFeedOnDate      = "product/lists/%s/%d/%d/%d"
+	APIEndpointRegionalStatisticsOnDate = "product/stats/%s/%d/%d/%d"
+	APIEndpointSpeciesListForRegion     = "product/spplist/%s"
+	APIEndpointTop100                   = "product/top100/%s/%d/%d/%d"
+	APIEndpointViewChecklist            = "product/checklist/view/%s"
+
+	// data/obs
+	APIEndpointHistoricObservationsOnDate          = "data/obs/%s/historic/%d/%d/%d"
+	APIEndpointNearestObservationsOfSpecies        = "data/nearest/geo/recent/%s"
+	APIEndpointRecentChecklistsFeed                = "product/lists/%s"
+	APIEndpointRecentNearbyNotableObservations     = "data/obs/geo/recent/notable"
+	APIEndpointRecentNearbyObservations            = "data/obs/geo/recent"
+	APIEndpointRecentNearbyObservationsOfSpecies   = "data/obs/geo/recent/%s"
+	APIEndpointRecentNotableObservationsInRegion   = "data/obs/%s/recent/notable"
+	APIEndpointRecentObservationsInRegion          = "data/obs/%s/recent"
+	APIEndpointRecentObservationsOfSpeciesInRegion = "data/obs/%s/recent/%s"
 )
 
 type Client struct {
 	APIKey     string
 	BaseURL    *url.URL
 	httpClient *http.Client
+}
+
+type RequestOptions struct {
+	Query   url.Values
+	Headers map[string]string
 }
 
 func NewClient(key string) (*Client, error) {
@@ -58,15 +96,20 @@ func (c *Client) do(ctx context.Context, req *http.Request) (*http.Response, err
 	return c.httpClient.Do(req)
 }
 
-func (c *Client) get(ctx context.Context, endpoint string, query url.Values) (*http.Response, error) {
+func (c *Client) get(ctx context.Context, endpoint string, options RequestOptions) (*http.Response, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, c.url(c.BaseURL, endpoint), nil)
 	if err != nil {
 		return nil, err
 	}
-	if query != nil {
-		req.URL.RawQuery = query.Encode()
+	if options.Query != nil {
+		req.URL.RawQuery = options.Query.Encode()
 	}
-	fmt.Println("8============D", req.URL, req.URL.RawQuery)
+	if options.Headers != nil {
+		for k, v := range options.Headers {
+			req.Header.Add(k, v)
+		}
+	}
+	fmt.Println("8===========D", req.URL.RawQuery)
 	return c.do(ctx, req)
 }
 

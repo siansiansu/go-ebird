@@ -7,15 +7,6 @@ import (
 	"net/http"
 )
 
-type RegionInfoOptions struct {
-	RegionNameFormat string `url:"regionNameFormat"`
-	Delim            string `url:"delim"`
-}
-
-type SubRegionListOptions struct {
-	Fmt string `url:"fmt"`
-}
-
 type Bounds struct {
 	MinX float64 `json:"minX,omitempty"`
 	MaxX float64 `json:"maxX,omitempty"`
@@ -37,7 +28,37 @@ type SubRegionListResponse struct {
 	Name string `json:"name,omitempty"`
 }
 
-// Region Info
+type RegionInfoOptions struct {
+	RegionNameFormat string `url:"regionNameFormat"`
+	Delim            string `url:"delim"`
+}
+
+func (c *Client) RegionInfo(ctx context.Context, region string, query interface{}) (*RegionInfoResponse, error) {
+	endpoint := fmt.Sprintf(APIEndointRegionInfo, region)
+	options := RequestOptions{
+		Query:   addOptions(query),
+		Headers: nil,
+	}
+	req, err := c.get(ctx, endpoint, options)
+	if err != nil {
+		return nil, err
+	}
+	return decodeToRegionInfoResponse(req)
+}
+
+func (c *Client) SubRegionList(ctx context.Context, regionType, parentRegionCode string) ([]SubRegionListResponse, error) {
+	endpoint := fmt.Sprintf(APIEndointSubRegionInfo, regionType, parentRegionCode)
+	options := RequestOptions{
+		Query:   nil,
+		Headers: nil,
+	}
+	req, err := c.get(ctx, endpoint, options)
+	if err != nil {
+		return nil, err
+	}
+	return decodeToSubRegionListResponse(req)
+}
+
 func decodeToRegionInfoResponse(res *http.Response) (*RegionInfoResponse, error) {
 	decoder := json.NewDecoder(res.Body)
 	result := &RegionInfoResponse{}
@@ -47,7 +68,6 @@ func decodeToRegionInfoResponse(res *http.Response) (*RegionInfoResponse, error)
 	return result, nil
 }
 
-// Sub Region List
 func decodeToSubRegionListResponse(res *http.Response) ([]SubRegionListResponse, error) {
 	decoder := json.NewDecoder(res.Body)
 	var result []SubRegionListResponse
@@ -55,23 +75,4 @@ func decodeToSubRegionListResponse(res *http.Response) ([]SubRegionListResponse,
 		return nil, err
 	}
 	return result, nil
-}
-func (c *Client) SubRegionList(ctx context.Context, regionType, parentRegionCode string, options interface{}) ([]SubRegionListResponse, error) {
-	endpoint := fmt.Sprintf(APIEndointSubRegionInfo, regionType, parentRegionCode)
-	opts := addOptions(options)
-	req, err := c.get(ctx, endpoint, opts)
-	if err != nil {
-		return nil, err
-	}
-	return decodeToSubRegionListResponse(req)
-}
-
-func (c *Client) RegionInfo(ctx context.Context, region string, options interface{}) (*RegionInfoResponse, error) {
-	endpoint := fmt.Sprintf(APIEndointRegionInfo, region)
-	opts := addOptions(options)
-	req, err := c.get(ctx, endpoint, opts)
-	if err != nil {
-		return nil, err
-	}
-	return decodeToRegionInfoResponse(req)
 }
