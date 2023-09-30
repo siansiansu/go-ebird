@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	APITaxonomicForms       = "ref/taxon/forms"
+	APITaxonomicForms       = "ref/taxon/forms/%s"
 	APIEbirdTaxonomy        = "ref/taxonomy/ebird"
 	APIEndointRegionInfo    = "ref/region/info/%s"
 	APIEndointSubRegionInfo = "ref/region/list/%s/%s"
@@ -51,7 +51,7 @@ func (client *Client) url(base *url.URL, endpoint string) string {
 
 func (c *Client) do(ctx context.Context, req *http.Request) (*http.Response, error) {
 	req.Header.Add("x-ebirdapitoken", c.APIKey)
-	req.Header.Set("Content-Type", "application/json")
+	// req.Header.Set("Content-Type", "application/json")
 	if ctx != nil {
 		req = req.WithContext(ctx)
 	}
@@ -66,7 +66,7 @@ func (c *Client) get(ctx context.Context, endpoint string, query url.Values) (*h
 	if query != nil {
 		req.URL.RawQuery = query.Encode()
 	}
-	// fmt.Println("8============D", req.URL.RawQuery)
+	fmt.Println("8============D", req.URL, req.URL.RawQuery)
 	return c.do(ctx, req)
 }
 

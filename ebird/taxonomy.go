@@ -7,12 +7,6 @@ import (
 	"net/http"
 )
 
-type TaxonomicFormsResponse []string
-
-type TaxonomicFormsOptions struct {
-	SpeciesCode string `url:"speciesCode"`
-}
-
 type EbirdTaxonomyOptions struct {
 	Cat     string `url:"cat"`
 	Fmt     string `url:"fmt"`
@@ -36,16 +30,27 @@ type EbirdTaxonomyResponse struct {
 	FamilySciName string   `json:"familySciName,omitempty"`
 }
 
-func (c *Client) TaxonomicForms(ctx context.Context, options interface{}) (*TaxonomicFormsResponse, error) {
-	endpoint := APITaxonomicForms
-	opts := addOptions(options)
-	req, err := c.get(ctx, endpoint, opts)
+// Taxonomic Forms
+func (c *Client) TaxonomicForms(ctx context.Context, speciesCode string) ([]string, error) {
+	endpoint := fmt.Sprintf(APITaxonomicForms, speciesCode)
+	req, err := c.get(ctx, endpoint, nil)
 	if err != nil {
 		return nil, err
 	}
+	defer req.Body.Close()
 	return decodeToTaxonomicForms(req)
 }
 
+func decodeToTaxonomicForms(res *http.Response) ([]string, error) {
+	decoder := json.NewDecoder(res.Body)
+	var result []string
+	if err := decoder.Decode(&result); err != nil {
+		return nil, fmt.Errorf("failed to decode response: %v", err)
+	}
+	return result, nil
+}
+
+// Ebird Taxomony
 func (c *Client) EbirdTaxonomy(ctx context.Context, options interface{}) ([]EbirdTaxonomyResponse, error) {
 	endpoint := APIEbirdTaxonomy
 	opts := addOptions(options)
@@ -54,19 +59,10 @@ func (c *Client) EbirdTaxonomy(ctx context.Context, options interface{}) ([]Ebir
 	if err != nil {
 		return nil, err
 	}
+	defer req.Body.Close()
 	return decodeToEbirdTaxonomyResponse(req)
 }
 
-func decodeToTaxonomicForms(res *http.Response) (*TaxonomicFormsResponse, error) {
-	decoder := json.NewDecoder(res.Body)
-	var result TaxonomicFormsResponse
-	if err := decoder.Decode(&result); err != nil {
-		return nil, fmt.Errorf("failed to decode response: %v", err)
-	}
-	return &result, nil
-}
-
-// Ebird Taxomony
 func decodeToEbirdTaxonomyResponse(res *http.Response) ([]EbirdTaxonomyResponse, error) {
 	decoder := json.NewDecoder(res.Body)
 	var result []EbirdTaxonomyResponse

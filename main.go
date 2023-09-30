@@ -51,10 +51,7 @@ func main() {
 	// }
 	// test4
 
-	ebirdTaxonomyOptions := ebird.TaxonomicFormsOptions{
-		SpeciesCode: "virrai",
-	}
-	r, err := client.TaxonomicForms(ctx, ebirdTaxonomyOptions)
+	r, err := client.TaxonomicForms(ctx, "virrai")
 	if err != nil {
 		panic(err)
 	}
