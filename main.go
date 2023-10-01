@@ -13,9 +13,20 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	r, err := client.ViewChecklist(ctx, "S78057631")
+
+	r, err := client.HistoricObservationsOnDate(ctx, "TW", 2023, 9, 30, ebird.RecentObservationsOptions{
+		MaxResults: 1,
+	})
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(r.SubmissionMethodCode)
+	for _, e := range r {
+		fmt.Println(e.ComName)
+	}
+
+	data, err := client.ViewChecklist(ctx, "S78057631")
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(data.ChecklistId, data.NumSpecies, data.LocId)
 }

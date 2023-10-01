@@ -65,7 +65,7 @@ type RequestOptions struct {
 
 func NewClient(key string) (*Client, error) {
 	if key == "" {
-		return nil, errors.New("wololo")
+		return nil, errors.New("please input an auth key")
 	}
 	c := &Client{
 		APIKey:     key,

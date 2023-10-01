@@ -80,13 +80,13 @@ type Top100Response struct {
 	UserId                string `json:"userId,omitempty"`
 }
 type Top100Options struct {
-	RankedBy   string `json:"rankedBy,omitempty"`
-	MaxResults uint32 `json:"maxResults,omitempty"`
+	RankedBy   string `url:"rankedBy"`
+	MaxResults uint32 `url:"maxResults"`
 }
 
 type ChecklistFeedOnDateOptions struct {
-	SortKey    string `json:"sortKey,omitempty"`
-	MaxResults uint32 `json:"maxResults,omitempty"`
+	SortKey    string `url:"sortKey"`
+	MaxResults uint32 `url:"maxResults"`
 }
 
 func (c *Client) ViewChecklist(ctx context.Context, subId string) (*ViewChecklistResponse, error) {
