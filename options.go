@@ -75,17 +75,17 @@ func GroupNameLocale(code string) RequestOption {
 
 // Only fetch observations from hotspots.
 // Values: true, false
-func Hotspot(code string) RequestOption {
+func Hotspot(code bool) RequestOption {
 	return func(o *requestOptions) {
-		o.urlParams.Set("hotspot", code)
+		o.urlParams.Set("hotspot", strconv.FormatBool(code))
 	}
 }
 
 // Include observations which have not yet been reviewed.
 // Values: true, false
-func IncludeProvisional(code string) RequestOption {
+func IncludeProvisional(code bool) RequestOption {
 	return func(o *requestOptions) {
-		o.urlParams.Set("includeProvisional	", code)
+		o.urlParams.Set("includeProvisional	", strconv.FormatBool(code))
 	}
 }
 
