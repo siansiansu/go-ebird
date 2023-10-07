@@ -7,7 +7,7 @@ import (
 
 type TaxonomicGroups struct {
 	GroupName        string      `json:"groupName,omitempty"`
-	GroupOrder       uint32      `json:"groupOrder,omitempty"`
+	GroupOrder       int32       `json:"groupOrder,omitempty"`
 	TaxonOrderBounds [][]float32 `json:"taxonOrderBounds,omitempty"`
 }
 
@@ -38,6 +38,9 @@ type EbirdTaxonomy struct {
 }
 
 func (c *Client) TaxonomicGroups(ctx context.Context, speciesGrouping string, opts ...RequestOption) ([]TaxonomicGroups, error) {
+	if speciesGrouping == "" {
+		return nil, fmt.Errorf("speciesGrouping cannot be empty")
+	}
 	ebirdURL := fmt.Sprintf(APIEndpointTaxonomicGroups, speciesGrouping)
 
 	var t []TaxonomicGroups
@@ -89,6 +92,10 @@ func (c *Client) TaxaLocaleCodes(ctx context.Context, opts ...RequestOption) ([]
 }
 
 func (c *Client) TaxonomicForms(ctx context.Context, speciesCode string, opts ...RequestOption) ([]string, error) {
+	if speciesCode == "" {
+		return nil, fmt.Errorf("speciesCode cannot be empty")
+	}
+
 	ebirdURL := fmt.Sprintf(APIEndpointTaxonomicForms, speciesCode)
 
 	var t []string

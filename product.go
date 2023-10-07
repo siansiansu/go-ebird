@@ -10,8 +10,8 @@ type Obs struct {
 	HideFlags        []string `json:"hideFlags,omitempty"`
 	ObsDt            string   `json:"obsDt,omitempty"`
 	Subnational1Code string   `json:"subnational1Code,omitempty"`
-	HowManyAtleast   uint32   `json:"howManyAtleast,omitempty"`
-	HowManyAtmost    uint32   `json:"howManyAtmost,omitempty"`
+	HowManyAtleast   int32    `json:"howManyAtleast,omitempty"`
+	HowManyAtmost    int32    `json:"howManyAtmost,omitempty"`
 	SubId            string   `json:"subId,omitempty"`
 	ProjId           string   `json:"projId,omitempty"`
 	ObsId            string   `json:"obsId,omitempty"`
@@ -39,14 +39,14 @@ type ViewChecklist struct {
 	ObsDt                       string  `json:"obsDt,omitempty"`
 	ObsTimeValid                bool    `json:"obsTimeValid,omitempty"`
 	ChecklistId                 string  `json:"checklistId,omitempty"`
-	NumObservers                uint32  `json:"numObservers,omitempty"`
+	NumObservers                int32   `json:"numObservers,omitempty"`
 	EffortDistanceKm            float32 `json:"effortDistanceKm,omitempty"`
 	EffortDistanceEnteredUnit   string  `json:"effortDistanceEnteredUnit,omitempty"`
 	Subnational1Code            string  `json:"subnational1Code,omitempty"`
 	SubmissionMethodCode        string  `json:"submissionMethodCode,omitempty"`
 	SubmissionMethodVersion     string  `json:"submissionMethodVersion,omitempty"`
 	UserDisplayName             string  `json:"userDisplayName,omitempty"`
-	NumSpecies                  uint32  `json:"numSpecies,omitempty"`
+	NumSpecies                  int32   `json:"numSpecies,omitempty"`
 	SubmissionMethodVersionDisp string  `json:"submissionMethodVersionDisp,omitempty"`
 	SubAux                      []SubAux
 	SubAuxAi                    []string `json:"subAuxAi,omitempty"`
@@ -54,15 +54,15 @@ type ViewChecklist struct {
 }
 
 type RegionalStatisticsOnDate struct {
-	NumChecklists   uint32 `json:"numChecklists,omitempty"`
-	NumContributors uint32 `json:"numContributors,omitempty"`
-	NumSpecies      uint32 `json:"numSpecies,omitempty"`
+	NumChecklists   int32 `json:"numChecklists,omitempty"`
+	NumContributors int32 `json:"numContributors,omitempty"`
+	NumSpecies      int32 `json:"numSpecies,omitempty"`
 }
 type ChecklistFeedOnDate struct {
 	LocId           string      `json:"locId,omitempty"`
 	SubId           string      `json:"subId,omitempty"`
 	UserDisplayName string      `json:"userDisplayName,omitempty"`
-	NumSpecies      uint32      `json:"numSpecies,omitempty"`
+	NumSpecies      int32       `json:"numSpecies,omitempty"`
 	ObsDt           string      `json:"obsDt,omitempty"`
 	ObsTime         string      `json:"obsTime,omitempty"`
 	IsoObsDate      string      `json:"isoObsDate,omitempty"`
@@ -73,13 +73,21 @@ type ChecklistFeedOnDate struct {
 type Top100 struct {
 	ProfileHandle         string `json:"profileHandle,omitempty"`
 	UserDisplayName       string `json:"userDisplayName,omitempty"`
-	NumSpecies            uint32 `json:"numSpecies,omitempty"`
-	NumCompleteChecklists uint32 `json:"numCompleteChecklists,omitempty"`
-	RowNum                uint32 `json:"rowNum,omitempty"`
+	NumSpecies            int32  `json:"numSpecies,omitempty"`
+	NumCompleteChecklists int32  `json:"numCompleteChecklists,omitempty"`
+	RowNum                int32  `json:"rowNum,omitempty"`
 	UserId                string `json:"userId,omitempty"`
 }
 
 func (c *Client) Top100(ctx context.Context, regionCode string, y, m, d int, opts ...RequestOption) ([]Top100, error) {
+	if regionCode == "" {
+		return nil, fmt.Errorf("regionCode cannot be empty")
+	}
+
+	if y <= 0 || m <= 0 || d <= 0 {
+		return nil, fmt.Errorf("invalid date components: year (y), month (m), and day (d) must be greater than 0")
+	}
+
 	ebirdURL := fmt.Sprintf(APIEndpointTop100, regionCode, y, m, d)
 
 	var t []Top100
@@ -96,6 +104,14 @@ func (c *Client) Top100(ctx context.Context, regionCode string, y, m, d int, opt
 }
 
 func (c *Client) ChecklistFeedOnDate(ctx context.Context, regionCode string, y, m, d int, opts ...RequestOption) ([]ChecklistFeedOnDate, error) {
+	if regionCode == "" {
+		return nil, fmt.Errorf("regionCode cannot be empty")
+	}
+
+	if y <= 0 || m <= 0 || d <= 0 {
+		return nil, fmt.Errorf("invalid date components: year (y), month (m), and day (d) must be greater than 0")
+	}
+
 	ebirdURL := fmt.Sprintf(APIEndpointChecklistFeedOnDate, regionCode, y, m, d)
 
 	var t []ChecklistFeedOnDate
@@ -112,6 +128,14 @@ func (c *Client) ChecklistFeedOnDate(ctx context.Context, regionCode string, y, 
 }
 
 func (c *Client) RegionalStatisticsOnDate(ctx context.Context, regionCode string, y, m, d int, opts ...RequestOption) (*RegionalStatisticsOnDate, error) {
+	if regionCode == "" {
+		return nil, fmt.Errorf("regionCode cannot be empty")
+	}
+
+	if y <= 0 || m <= 0 || d <= 0 {
+		return nil, fmt.Errorf("invalid date components: year (y), month (m), and day (d) must be greater than 0")
+	}
+
 	ebirdURL := fmt.Sprintf(APIEndpointRegionalStatisticsOnDate, regionCode, y, m, d)
 
 	var t RegionalStatisticsOnDate
@@ -127,6 +151,10 @@ func (c *Client) RegionalStatisticsOnDate(ctx context.Context, regionCode string
 }
 
 func (c *Client) SpeciesListForRegion(ctx context.Context, regionCode string, opts ...RequestOption) ([]string, error) {
+	if regionCode == "" {
+		return nil, fmt.Errorf("regionCode cannot be empty")
+	}
+
 	ebirdURL := fmt.Sprintf(APIEndpointSpeciesListForRegion, regionCode)
 
 	var t []string
@@ -144,6 +172,10 @@ func (c *Client) SpeciesListForRegion(ctx context.Context, regionCode string, op
 }
 
 func (c *Client) ViewChecklist(ctx context.Context, subId string, opts ...RequestOption) (*ViewChecklist, error) {
+	if subId == "" {
+		return nil, fmt.Errorf("subId cannot be empty")
+	}
+
 	ebirdURL := fmt.Sprintf(APIEndpointViewChecklist, subId)
 
 	var t ViewChecklist
