@@ -3,7 +3,6 @@ package ebird
 import (
 	"context"
 	"fmt"
-	"strings"
 )
 
 type AdjacentRegions struct {
@@ -17,9 +16,6 @@ func (c *Client) AdjacentRegions(ctx context.Context, regionCode string, opts ..
 	}
 
 	ebirdURL := fmt.Sprintf(APIEndpointAdjacentRegions, regionCode)
-	if !strings.Contains(ebirdURL, "ref/adjacent") {
-		return nil, fmt.Errorf("invalid API endpoint for AdjacentRegions")
-	}
 
 	var t []AdjacentRegions
 	if params := processOptions(opts...).urlParams.Encode(); params != "" {

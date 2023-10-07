@@ -13,7 +13,7 @@ type Observations struct {
 	LocId           string  `json:"locId,omitempty"`
 	LocName         string  `json:"locName,omitempty"`
 	ObsDt           string  `json:"obsDt,omitempty"`
-	HowMany         uint32  `json:"howMany,omitempty"`
+	HowMany         int32   `json:"howMany,omitempty"`
 	Lat             float32 `json:"lat,omitempty"`
 	Lng             float32 `json:"lng,omitempty"`
 	ObsValid        bool    `json:"obsValid,omitempty"`
@@ -46,7 +46,7 @@ type RecentChecklistsFeed struct {
 	LocId           string `json:"locId,omitempty"`
 	SubId           string `json:"subId,omitempty"`
 	UserDisplayName string `json:"userDisplayName,omitempty"`
-	NumSpecies      uint32 `json:"numSpecies,omitempty"`
+	NumSpecies      int32  `json:"numSpecies,omitempty"`
 	ObsDt           string `json:"obsDt,omitempty"`
 	ObsTime         string `json:"obsTime,omitempty"`
 	IsoObsDate      string `json:"isoObsDate,omitempty"`
@@ -55,6 +55,9 @@ type RecentChecklistsFeed struct {
 }
 
 func (c *Client) RecentObservationsInRegion(ctx context.Context, regionCode string, opts ...RequestOption) ([]Observations, error) {
+	if regionCode == "" {
+		return nil, fmt.Errorf("regionCode cannot be empty")
+	}
 	ebirdURL := fmt.Sprintf(APIEndpointRecentObservationsInRegion, regionCode)
 
 	var t []Observations
@@ -71,6 +74,9 @@ func (c *Client) RecentObservationsInRegion(ctx context.Context, regionCode stri
 }
 
 func (c *Client) RecentNotableObservationsInRegion(ctx context.Context, regionCode string, opts ...RequestOption) ([]Observations, error) {
+	if regionCode == "" {
+		return nil, fmt.Errorf("regionCode cannot be empty")
+	}
 	ebirdURL := fmt.Sprintf(APIEndpointRecentNotableObservationsInRegion, regionCode)
 
 	var t []Observations
@@ -87,6 +93,12 @@ func (c *Client) RecentNotableObservationsInRegion(ctx context.Context, regionCo
 }
 
 func (c *Client) RecentObservationsOfSpeciesInRegion(ctx context.Context, regionCode, speciesCode string, opts ...RequestOption) ([]Observations, error) {
+	if regionCode == "" {
+		return nil, fmt.Errorf("regionCode cannot be empty")
+	}
+	if speciesCode == "" {
+		return nil, fmt.Errorf("speciesCode cannot be empty")
+	}
 	ebirdURL := fmt.Sprintf(APIEndpointRecentObservationsOfSpeciesInRegion, regionCode, speciesCode)
 
 	var t []Observations
@@ -123,6 +135,9 @@ func (c *Client) RecentNearbyObservations(ctx context.Context, opts ...RequestOp
 }
 
 func (c *Client) RecentNearbyObservationsOfSpecies(ctx context.Context, speciesCode string, opts ...RequestOption) ([]Observations, error) {
+	if speciesCode == "" {
+		return nil, fmt.Errorf("speciesCode cannot be empty")
+	}
 	ebirdURL := fmt.Sprintf(APIEndpointRecentNearbyObservationsOfSpecies, speciesCode)
 
 	var t []Observations
@@ -139,6 +154,9 @@ func (c *Client) RecentNearbyObservationsOfSpecies(ctx context.Context, speciesC
 }
 
 func (c *Client) NearestObservationsOfSpecies(ctx context.Context, speciesCode string, opts ...RequestOption) ([]Observations, error) {
+	if speciesCode == "" {
+		return nil, fmt.Errorf("speciesCode cannot be empty")
+	}
 	ebirdURL := fmt.Sprintf(APIEndpointNearestObservationsOfSpecies, speciesCode)
 
 	var t []Observations
@@ -171,6 +189,9 @@ func (c *Client) RecentNearbyNotableObservations(ctx context.Context, opts ...Re
 }
 
 func (c *Client) RecentChecklistsFeed(ctx context.Context, regionCode string, opts ...RequestOption) ([]RecentChecklistsFeed, error) {
+	if regionCode == "" {
+		return nil, fmt.Errorf("regionCode cannot be empty")
+	}
 	ebirdURL := fmt.Sprintf(APIEndpointRecentChecklistsFeed, regionCode)
 
 	var t []RecentChecklistsFeed
@@ -187,6 +208,14 @@ func (c *Client) RecentChecklistsFeed(ctx context.Context, regionCode string, op
 }
 
 func (c *Client) HistoricObservationsOnDate(ctx context.Context, regionCode string, y, m, d int, opts ...RequestOption) ([]Observations, error) {
+	if regionCode == "" {
+		return nil, fmt.Errorf("regionCode cannot be empty")
+	}
+
+	if y <= 0 || m <= 0 || d <= 0 {
+		return nil, fmt.Errorf("invalid date components: year (y), month (m), and day (d) must be greater than 0")
+	}
+
 	ebirdURL := fmt.Sprintf(APIEndpointHistoricObservationsOnDate, regionCode, y, m, d)
 
 	var t []Observations

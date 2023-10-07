@@ -33,7 +33,7 @@ type NearbyHotspots struct {
 	Lat               float32 `json:"lat" validate:"required"`
 	Lng               float32 `json:"lng" validate:"required"`
 	LatestObsDt       string  `json:"latestObsDt,omitempty"`
-	NumSpeciesAllTime uint32  `json:"numSpeciesAllTime,omitempty"`
+	NumSpeciesAllTime int32   `json:"numSpeciesAllTime,omitempty"`
 }
 
 type HotspotsInRegion struct {
@@ -45,10 +45,13 @@ type HotspotsInRegion struct {
 	Lat               float32 `json:"lat,omitempty"`
 	Lng               float32 `json:"lng,omitempty"`
 	LatestObsDt       string  `json:"latestObsDt,omitempty"`
-	NumSpeciesAllTime uint32  `json:"numSpeciesAllTime,omitempty"`
+	NumSpeciesAllTime int32   `json:"numSpeciesAllTime,omitempty"`
 }
 
 func (c *Client) HotspotsInRegion(ctx context.Context, regionCode string, opts ...RequestOption) ([]HotspotsInRegion, error) {
+	if regionCode == "" {
+		return nil, fmt.Errorf("regionCode cannot be empty")
+	}
 	ebirdURL := fmt.Sprintf(APIEndpointHotspotsInRegion, regionCode)
 
 	var t []HotspotsInRegion
@@ -88,6 +91,9 @@ func (c *Client) NearbyHotspots(ctx context.Context, opts ...RequestOption) ([]N
 }
 
 func (c *Client) HotspotInfo(ctx context.Context, locId string, opts ...RequestOption) (*HotspotInfo, error) {
+	if locId == "" {
+		return nil, fmt.Errorf("locId cannot be empty")
+	}
 	ebirdURL := fmt.Sprintf(APIEndpointHotspotInfo, locId)
 
 	var t HotspotInfo

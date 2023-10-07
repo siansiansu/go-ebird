@@ -8,8 +8,6 @@ import (
 	"testing"
 )
 
-// const testAPIKey = "your-test-api-key"
-
 func TestNewClient(t *testing.T) {
 	client, err := NewClient("ebird_api_key")
 	if err != nil {

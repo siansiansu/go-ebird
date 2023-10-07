@@ -27,6 +27,10 @@ type SubRegionList struct {
 }
 
 func (c *Client) RegionInfo(ctx context.Context, regionCode string, opts ...RequestOption) (*RegionInfo, error) {
+	if regionCode == "" {
+		return nil, fmt.Errorf("regionCode cannot be empty")
+	}
+
 	ebirdURL := fmt.Sprintf(APIEndointRegionInfo, regionCode)
 
 	var t RegionInfo
@@ -42,6 +46,13 @@ func (c *Client) RegionInfo(ctx context.Context, regionCode string, opts ...Requ
 }
 
 func (c *Client) SubRegionList(ctx context.Context, regionType, parentRegionCode string, opts ...RequestOption) ([]SubRegionList, error) {
+	if regionType == "" {
+		return nil, fmt.Errorf("regionType cannot be empty")
+	}
+	if parentRegionCode == "" {
+		return nil, fmt.Errorf("parentRegionCode cannot be empty")
+	}
+
 	ebirdURL := fmt.Sprintf(APIEndointSubRegionInfo, regionType, parentRegionCode)
 
 	var t []SubRegionList

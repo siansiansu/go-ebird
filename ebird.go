@@ -29,7 +29,6 @@ const (
 	APIEndpointRecentObservationsInRegion          = "data/obs/%s/recent"
 	APIEndpointRecentObservationsOfSpeciesInRegion = "data/obs/%s/recent/%s"
 
-	//
 	// The product end-points make it easy to get the information shown in various pages on the eBird web site
 	// https://documenter.getpostman.com/view/664302/S1ENwy59#af04604f-e406-4cea-991c-a9baef24cd78
 	APIEndpointChecklistFeedOnDate      = "product/lists/%s/%d/%d/%d"
@@ -88,12 +87,9 @@ func WithBaseURL(urlStr string) ClientOption {
 	}
 }
 
-// Error represents an error returned by the Spotify Web API.
 type Error struct {
-	// A short description of the error.
 	Message string `json:"message"`
-	// The HTTP status code.
-	Status int `json:"status"`
+	Status  int    `json:"status"`
 }
 
 func (e Error) Error() string {
