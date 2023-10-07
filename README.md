@@ -1,5 +1,7 @@
 # eBird client for Go
 
+[![GoDoc](https://godoc.org/github.com/siansiansu/go-ebird?status.svg)](http://godoc.org/github.com/siansiansu/go-ebird) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 ## Overview
 
 go-ebird is a Go client library designed for the eBird API. This library enables developers to seamlessly integrate bird observation data from eBird into their Go applications.
