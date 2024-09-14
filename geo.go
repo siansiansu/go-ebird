@@ -3,28 +3,48 @@ package ebird
 import (
 	"context"
 	"fmt"
+	"net/url"
 )
 
-type AdjacentRegions struct {
+type AdjacentRegion struct {
 	Code string `json:"code,omitempty"`
 	Name string `json:"name,omitempty"`
 }
 
-func (c *Client) AdjacentRegions(ctx context.Context, regionCode string, opts ...RequestOption) ([]AdjacentRegions, error) {
+type AdjacentRegionsOptions struct {
+	fmt string
+}
+
+type AdjacentRegionsOption func(*AdjacentRegionsOptions)
+
+func WithFormat(format string) AdjacentRegionsOption {
+	return func(o *AdjacentRegionsOptions) {
+		o.fmt = format
+	}
+}
+
+func (c *Client) AdjacentRegions(ctx context.Context, regionCode string, opts ...AdjacentRegionsOption) ([]AdjacentRegion, error) {
 	if regionCode == "" {
 		return nil, fmt.Errorf("regionCode cannot be empty")
 	}
 
-	ebirdURL := fmt.Sprintf(APIEndpointAdjacentRegions, regionCode)
-
-	var t []AdjacentRegions
-	if params := processOptions(opts...).urlParams.Encode(); params != "" {
-		ebirdURL += "?" + params
+	options := &AdjacentRegionsOptions{}
+	for _, opt := range opts {
+		opt(options)
 	}
 
-	err := c.get(ctx, ebirdURL, &t)
+	params := url.Values{}
+	if options.fmt != "" {
+		params.Set("fmt", options.fmt)
+	}
+
+	endpoint := fmt.Sprintf(APIEndpoints.AdjacentRegions, regionCode)
+
+	var regions []AdjacentRegion
+	err := c.get(ctx, endpoint, params, &regions)
 	if err != nil {
-		return nil, fmt.Errorf("failed to make GET request: %v", err)
+		return nil, fmt.Errorf("failed to get adjacent regions: %w", err)
 	}
-	return t, nil
+
+	return regions, nil
 }

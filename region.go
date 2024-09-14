@@ -13,7 +13,7 @@ type Bounds struct {
 }
 
 type RegionInfo struct {
-	Bounds    Bounds
+	Bounds    Bounds  `json:"bounds"`
 	Result    string  `json:"result,omitempty"`
 	Code      string  `json:"code,omitempty"`
 	Type      string  `json:"type,omitempty"`
@@ -21,7 +21,7 @@ type RegionInfo struct {
 	Latitude  float64 `json:"latitude,omitempty"`
 }
 
-type SubRegionList struct {
+type SubRegion struct {
 	Code string `json:"code,omitempty"`
 	Name string `json:"name,omitempty"`
 }
@@ -31,21 +31,19 @@ func (c *Client) RegionInfo(ctx context.Context, regionCode string, opts ...Requ
 		return nil, fmt.Errorf("regionCode cannot be empty")
 	}
 
-	ebirdURL := fmt.Sprintf(APIEndointRegionInfo, regionCode)
+	endpoint := fmt.Sprintf(APIEndpoints.RegionInfo, regionCode)
+	params := processOptions(opts...)
 
-	var t RegionInfo
-	if params := processOptions(opts...).urlParams.Encode(); params != "" {
-		ebirdURL += "?" + params
-	}
-	err := c.get(ctx, ebirdURL, &t)
+	var info RegionInfo
+	err := c.get(ctx, endpoint, params.URLParams, &info)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get region info: %w", err)
 	}
 
-	return &t, nil
+	return &info, nil
 }
 
-func (c *Client) SubRegionList(ctx context.Context, regionType, parentRegionCode string, opts ...RequestOption) ([]SubRegionList, error) {
+func (c *Client) SubRegionList(ctx context.Context, regionType, parentRegionCode string, opts ...RequestOption) ([]SubRegion, error) {
 	if regionType == "" {
 		return nil, fmt.Errorf("regionType cannot be empty")
 	}
@@ -53,17 +51,14 @@ func (c *Client) SubRegionList(ctx context.Context, regionType, parentRegionCode
 		return nil, fmt.Errorf("parentRegionCode cannot be empty")
 	}
 
-	ebirdURL := fmt.Sprintf(APIEndointSubRegionInfo, regionType, parentRegionCode)
+	endpoint := fmt.Sprintf(APIEndpoints.SubRegionInfo, regionType, parentRegionCode)
+	params := processOptions(opts...)
 
-	var t []SubRegionList
-	if params := processOptions(opts...).urlParams.Encode(); params != "" {
-		ebirdURL += "?" + params
-	}
-
-	err := c.get(ctx, ebirdURL, &t)
+	var subRegions []SubRegion
+	err := c.get(ctx, endpoint, params.URLParams, &subRegions)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get subregion list: %w", err)
 	}
 
-	return t, nil
+	return subRegions, nil
 }

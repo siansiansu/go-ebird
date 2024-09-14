@@ -11,8 +11,8 @@ import (
 
 const (
 	EBIRD_API_KEY = "abc123"
-	LATITUDE      = 35.0
-	LONGITUDE     = 137.0
+	REGION_CODE   = "TW"
+	MAX_RESULTS   = 2
 )
 
 func main() {
@@ -30,13 +30,13 @@ func main() {
 		log.Fatalf("Failed to create eBird client: %v", err)
 	}
 
-	hotspots, err := client.NearbyHotspots(ctx, ebird.Lat(LATITUDE), ebird.Lng(LONGITUDE))
+	observations, err := client.RecentObservationsInRegion(ctx, REGION_CODE, ebird.MaxResults(MAX_RESULTS), ebird.Hotspot(true))
 	if err != nil {
-		log.Fatalf("Failed to get nearby hotspots: %v", err)
+		log.Fatalf("Failed to get recent observations: %v", err)
 	}
 
-	fmt.Printf("Nearby hotspots for coordinates (%f, %f):\n", LATITUDE, LONGITUDE)
-	for _, hotspot := range hotspots {
-		fmt.Printf("- %s (%s): %d species\n", hotspot.LocName, hotspot.LocId, hotspot.NumSpeciesAllTime)
+	fmt.Printf("Recent observations in %s (max %d, hotspots only):\n", REGION_CODE, MAX_RESULTS)
+	for _, obs := range observations {
+		fmt.Printf("- %s: %d seen at %s\n", obs.ComName, obs.HowMany, obs.LocName)
 	}
 }

@@ -1,57 +1,97 @@
 package ebird
 
 import (
-	"bytes"
 	"context"
+	"encoding/json"
 	"net/http"
+	"net/http/httptest"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestRegionInfo(t *testing.T) {
-	client, server := testClient(http.StatusOK, bytes.NewBufferString(`{"bounds": {"minX": -125.0, "maxX": -66.934570, "minY": 24.396308, "maxY": 49.384358}, "result": "Success", "code": "US", "type": "country", "longitude": -95.712891, "latitude": 37.09024}`))
+	input := `{
+		"bounds": {"minX": -125.0, "maxX": -66.934570, "minY": 24.396308, "maxY": 49.384358},
+		"result": "Success",
+		"code": "US",
+		"type": "country",
+		"longitude": -95.712891,
+		"latitude": 37.09024
+	}`
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, http.MethodGet, r.Method)
+		assert.Equal(t, "/ref/region/info/US", r.URL.Path)
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(input))
+	}))
 	defer server.Close()
 
-	client.httpClient = server.Client()
-
-	regionCode := "US"
+	client, err := NewClient("test-api-key", WithBaseURL(server.URL+"/"))
+	require.NoError(t, err)
 
 	ctx := context.Background()
+	got, err := client.RegionInfo(ctx, "US")
+	require.NoError(t, err)
 
-	result, err := client.RegionInfo(ctx, regionCode)
-	if err != nil {
-		t.Fatalf("Error making API request: %v", err)
-	}
+	var want RegionInfo
+	err = json.Unmarshal([]byte(input), &want)
+	require.NoError(t, err)
 
-	if result.Code != "US" || result.Result != "Success" || result.Type != "country" || result.Longitude != -95.712891 || result.Latitude != 37.09024 {
-		t.Errorf("Unexpected values for RegionInfo. Got: %v", result)
-	}
+	assert.Equal(t, &want, got)
 }
 
 func TestSubRegionList(t *testing.T) {
-	client, server := testClient(http.StatusOK, bytes.NewBufferString(`[{"code": "US-TX", "name": "Texas"}, {"code": "US-CA", "name": "California"}]`))
+	input := `[
+		{"code": "US-TX", "name": "Texas"},
+		{"code": "US-CA", "name": "California"}
+	]`
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, http.MethodGet, r.Method)
+		assert.Equal(t, "/ref/region/list/subnational1/US", r.URL.Path)
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(input))
+	}))
 	defer server.Close()
 
-	client.httpClient = server.Client()
+	client, err := NewClient("test-api-key", WithBaseURL(server.URL+"/"))
+	require.NoError(t, err)
 
-	regionType := "subnational1"
-	parentRegionCode := "US"
+	ctx := context.Background()
+	got, err := client.SubRegionList(ctx, "subnational1", "US")
+	require.NoError(t, err)
+
+	var want []SubRegion
+	err = json.Unmarshal([]byte(input), &want)
+	require.NoError(t, err)
+
+	assert.Equal(t, want, got)
+}
+
+func TestRegionInfoWithEmptyRegionCode(t *testing.T) {
+	client, err := NewClient("test-api-key")
+	require.NoError(t, err)
+
+	ctx := context.Background()
+	_, err = client.RegionInfo(ctx, "")
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "regionCode cannot be empty")
+}
+
+func TestSubRegionListWithEmptyParameters(t *testing.T) {
+	client, err := NewClient("test-api-key")
+	require.NoError(t, err)
 
 	ctx := context.Background()
 
-	result, err := client.SubRegionList(ctx, regionType, parentRegionCode)
-	if err != nil {
-		t.Fatalf("Error making API request: %v", err)
-	}
+	_, err = client.SubRegionList(ctx, "", "US")
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "regionType cannot be empty")
 
-	if len(result) != 2 {
-		t.Errorf("Unexpected number of subregions. Expected: 2, Got: %d", len(result))
-	}
-
-	if result[0].Code != "US-TX" || result[0].Name != "Texas" {
-		t.Errorf("Unexpected values for the first subregion. Got: %v", result[0])
-	}
-
-	if result[1].Code != "US-CA" || result[1].Name != "California" {
-		t.Errorf("Unexpected values for the second subregion. Got: %v", result[1])
-	}
+	_, err = client.SubRegionList(ctx, "subnational1", "")
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "parentRegionCode cannot be empty")
 }

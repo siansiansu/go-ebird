@@ -3,19 +3,20 @@ package ebird
 import (
 	"net/url"
 	"strconv"
+	"strings"
 )
 
-type ClientOption func(client *Client)
+type ClientOption func(*Client)
 
-type RequestOption func(*requestOptions)
+type RequestOption func(*RequestOptions)
 
-type requestOptions struct {
-	urlParams url.Values
+type RequestOptions struct {
+	URLParams url.Values
 }
 
-func processOptions(options ...RequestOption) requestOptions {
-	o := requestOptions{
-		urlParams: url.Values{},
+func processOptions(options ...RequestOption) RequestOptions {
+	o := RequestOptions{
+		URLParams: url.Values{},
 	}
 	for _, opt := range options {
 		opt(&o)
@@ -23,156 +24,148 @@ func processOptions(options ...RequestOption) requestOptions {
 	return o
 }
 
-// Only fetch hotspots which have been visited up to 'back' days ago.
-// Values: 1-30
-func Back(amount int) RequestOption {
-	return func(o *requestOptions) {
-		o.urlParams.Set("back", strconv.Itoa(amount))
+func Back(days int) RequestOption {
+	return func(o *RequestOptions) {
+		if days > 0 && days <= 30 {
+			o.URLParams.Set("back", strconv.Itoa(days))
+		}
 	}
 }
 
-// Only fetch records from these taxonomic categories.
-// Values: any available category, must be lowercase
-func Cat(code string) RequestOption {
-	return func(o *requestOptions) {
-		o.urlParams.Set("cat", code)
+func Cat(category string) RequestOption {
+	return func(o *RequestOptions) {
+		o.URLParams.Set("cat", category)
 	}
 }
 
-// The characters used to separate elements in the name.
-// Values: (any characters)
-func Delim(code string) RequestOption {
-	return func(o *requestOptions) {
-		o.urlParams.Set("delim", code)
+func Delim(delimiter string) RequestOption {
+	return func(o *RequestOptions) {
+		o.URLParams.Set("delim", delimiter)
 	}
 }
 
-// The search radius from the given position, in kilometers.
-// Values: 0 - 500
-func Dist(amount int) RequestOption {
-	return func(o *requestOptions) {
-		o.urlParams.Set("dist", strconv.Itoa(amount))
+func Dist(distance int) RequestOption {
+	return func(o *RequestOptions) {
+		if distance >= 0 && distance <= 500 {
+			o.URLParams.Set("dist", strconv.Itoa(distance))
+		}
 	}
 }
 
-// Fetch the records in CSV or JSON format.
-// Values: csv, json
-func Fmt(code string) RequestOption {
-	return func(o *requestOptions) {
-		o.urlParams.Set("fmt", code)
+func Fmt(format string) RequestOption {
+	return func(o *RequestOptions) {
+		if format == "csv" || format == "json" {
+			o.URLParams.Set("fmt", format)
+		}
 	}
 }
 
-// Locale for species group names. English names are returned for any
-// non-listed locale or any non-translated group name
-// Values: bg,cs,da,de,en,es,es_AR,es_CL,es_CU,es_ES,es_MX,es_PA,fr,he,
-// is,nl,no,pt_BR,pt_PT,ru,sr,th,tr, or zh
-func GroupNameLocale(code string) RequestOption {
-	return func(o *requestOptions) {
-		o.urlParams.Set("groupNameLocale", code)
+func GroupNameLocale(locale string) RequestOption {
+	return func(o *RequestOptions) {
+		o.URLParams.Set("groupNameLocale", locale)
 	}
 }
 
-// Only fetch observations from hotspots.
-// Values: true, false
-func Hotspot(code bool) RequestOption {
-	return func(o *requestOptions) {
-		o.urlParams.Set("hotspot", strconv.FormatBool(code))
+func Hotspot(isHotspot bool) RequestOption {
+	return func(o *RequestOptions) {
+		o.URLParams.Set("hotspot", strconv.FormatBool(isHotspot))
 	}
 }
 
-// Include observations which have not yet been reviewed.
-// Values: true, false
-func IncludeProvisional(code bool) RequestOption {
-	return func(o *requestOptions) {
-		o.urlParams.Set("includeProvisional	", strconv.FormatBool(code))
+func IncludeProvisional(include bool) RequestOption {
+	return func(o *RequestOptions) {
+		o.URLParams.Set("includeProvisional", strconv.FormatBool(include))
 	}
 }
 
-// Required. Latitude to 2 decimal places.
-// Values: -90 - 90
-func Lat(amount int) RequestOption {
-	return func(o *requestOptions) {
-		o.urlParams.Set("lat", strconv.Itoa(amount))
+func Lat(latitude float64) RequestOption {
+	return func(o *RequestOptions) {
+		if latitude >= -90 && latitude <= 90 {
+			o.URLParams.Set("lat", strconv.FormatFloat(latitude, 'f', 2, 64))
+		}
 	}
 }
 
-// Required. Longitude to 2 decimal places.
-// Values: -180 - 180
-func Lng(amount int) RequestOption {
-	return func(o *requestOptions) {
-		o.urlParams.Set("lng", strconv.Itoa(amount))
+func Lng(longitude float64) RequestOption {
+	return func(o *RequestOptions) {
+		if longitude >= -180 && longitude <= 180 {
+			o.URLParams.Set("lng", strconv.FormatFloat(longitude, 'f', 2, 64))
+		}
 	}
 }
 
-// Use this language for common names.
-// Values: any available locale
-func Locale(code string) RequestOption {
-	return func(o *requestOptions) {
-		o.urlParams.Set("locale", code)
+func Locale(locale string) RequestOption {
+	return func(o *RequestOptions) {
+		o.URLParams.Set("locale", locale)
 	}
 }
 
-// Only fetch this number of contributors.
-// Values: 1 - 100
-func MaxResults(amount int) RequestOption {
-	return func(o *requestOptions) {
-		o.urlParams.Set("maxResults", strconv.Itoa(amount))
+func MaxResults(max int) RequestOption {
+	return func(o *RequestOptions) {
+		if max > 0 && max <= 100 {
+			o.URLParams.Set("maxResults", strconv.Itoa(max))
+		}
 	}
 }
 
-// Fetch observations from up to 10 locations.
-// Values: any location code
-func R(code string) RequestOption {
-	return func(o *requestOptions) {
-		o.urlParams.Set("r", code)
+func R(locations ...string) RequestOption {
+	return func(o *RequestOptions) {
+		if len(locations) > 0 && len(locations) <= 10 {
+			o.URLParams.Set("r", strings.Join(locations, ","))
+		}
 	}
 }
 
-// Order by number of complete checklists (cl) or by number of species seen (spp).
-// Values: spp, cl
-func RankedBy(code string) RequestOption {
-	return func(o *requestOptions) {
-		o.urlParams.Set("rankedBy", code)
+func RankedBy(rankMethod string) RequestOption {
+	return func(o *RequestOptions) {
+		if rankMethod == "spp" || rankMethod == "cl" {
+			o.URLParams.Set("rankedBy", rankMethod)
+		}
 	}
 }
 
-// Control how the name is displayed.
-// Values: detailed, detailednoqual, full, namequal, nameonly, revdetailed
-func RegionNameFormat(code string) RequestOption {
-	return func(o *requestOptions) {
-		o.urlParams.Set("regionNameFormat", code)
+func RegionNameFormat(format string) RequestOption {
+	return func(o *RequestOptions) {
+		validFormats := []string{"detailed", "detailednoqual", "full", "namequal", "nameonly", "revdetailed"}
+		if contains(validFormats, format) {
+			o.URLParams.Set("regionNameFormat", format)
+		}
 	}
 }
 
-// Order the results by the date of the checklist or by the date it was submitted.
-// Values: obs_dt, creation_dt
-func SortKey(code string) RequestOption {
-	return func(o *requestOptions) {
-		o.urlParams.Set("sortKey", code)
+func SortKey(key string) RequestOption {
+	return func(o *RequestOptions) {
+		if key == "obs_dt" || key == "creation_dt" {
+			o.URLParams.Set("sortKey", key)
+		}
 	}
 }
 
-// Only fetch records for these species.
-// Values: any species code
-func Species(code string) RequestOption {
-	return func(o *requestOptions) {
-		o.urlParams.Set("species", code)
+func Species(speciesCodes ...string) RequestOption {
+	return func(o *RequestOptions) {
+		if len(speciesCodes) > 0 {
+			o.URLParams.Set("species", strings.Join(speciesCodes, ","))
+		}
 	}
 }
 
-// Use this language for species common names.
-// Values: any available locale
-func SppLocale(code string) RequestOption {
-	return func(o *requestOptions) {
-		o.urlParams.Set("sppLocale", code)
+func SppLocale(locale string) RequestOption {
+	return func(o *RequestOptions) {
+		o.URLParams.Set("sppLocale", locale)
 	}
 }
 
-// Fetch a specific version of the taxonomy.
-// any available version
-func Version(code string) RequestOption {
-	return func(o *requestOptions) {
-		o.urlParams.Set("version", code)
+func Version(version string) RequestOption {
+	return func(o *RequestOptions) {
+		o.URLParams.Set("version", version)
 	}
+}
+
+func contains(slice []string, item string) bool {
+	for _, s := range slice {
+		if s == item {
+			return true
+		}
+	}
+	return false
 }

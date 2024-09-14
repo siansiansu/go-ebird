@@ -5,29 +5,29 @@ import (
 	"fmt"
 )
 
-type TaxonomicGroups struct {
+type TaxonomicGroup struct {
 	GroupName        string      `json:"groupName,omitempty"`
-	GroupOrder       int32       `json:"groupOrder,omitempty"`
-	TaxonOrderBounds [][]float32 `json:"taxonOrderBounds,omitempty"`
+	GroupOrder       int         `json:"groupOrder,omitempty"`
+	TaxonOrderBounds [][]float64 `json:"taxonOrderBounds,omitempty"`
 }
 
-type TaxonomyVersions struct {
-	AuthorityVer float32 `json:"authorityVer,omitempty"`
+type TaxonomyVersion struct {
+	AuthorityVer float64 `json:"authorityVer,omitempty"`
 	Latest       bool    `json:"latest,omitempty"`
 }
 
-type TaxaLocaleCodes struct {
+type TaxaLocaleCode struct {
 	Code       string `json:"code,omitempty"`
 	Name       string `json:"name,omitempty"`
 	LastUpdate string `json:"lastUpdate,omitempty"`
 }
 
-type EbirdTaxonomy struct {
+type EbirdTaxon struct {
 	SciName       string   `json:"sciName,omitempty"`
 	ComName       string   `json:"comName,omitempty"`
 	SpeciesCode   string   `json:"speciesCode,omitempty"`
 	Category      string   `json:"category,omitempty"`
-	TaxonOrder    float32  `json:"taxonOrder,omitempty"`
+	TaxonOrder    float64  `json:"taxonOrder,omitempty"`
 	BandingCodes  []string `json:"bandingCodes,omitempty"`
 	ComNameCodes  []string `json:"comNameCodes,omitempty"`
 	SciNameCodes  []string `json:"sciNameCodes,omitempty"`
@@ -37,58 +37,44 @@ type EbirdTaxonomy struct {
 	FamilySciName string   `json:"familySciName,omitempty"`
 }
 
-func (c *Client) TaxonomicGroups(ctx context.Context, speciesGrouping string, opts ...RequestOption) ([]TaxonomicGroups, error) {
+func (c *Client) TaxonomicGroups(ctx context.Context, speciesGrouping string, opts ...RequestOption) ([]TaxonomicGroup, error) {
 	if speciesGrouping == "" {
 		return nil, fmt.Errorf("speciesGrouping cannot be empty")
 	}
-	ebirdURL := fmt.Sprintf(APIEndpointTaxonomicGroups, speciesGrouping)
+	endpoint := fmt.Sprintf(APIEndpoints.TaxonomicGroups, speciesGrouping)
+	params := processOptions(opts...)
 
-	var t []TaxonomicGroups
-
-	if params := processOptions(opts...).urlParams.Encode(); params != "" {
-		ebirdURL += "?" + params
-	}
-
-	err := c.get(ctx, ebirdURL, &t)
+	var groups []TaxonomicGroup
+	err := c.get(ctx, endpoint, params.URLParams, &groups)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get taxonomic groups: %w", err)
 	}
 
-	return t, nil
+	return groups, nil
 }
 
-func (c *Client) TaxonomyVersions(ctx context.Context, opts ...RequestOption) ([]TaxonomyVersions, error) {
-	ebirdURL := APIEndpointTaxonomyVersions
+func (c *Client) TaxonomyVersions(ctx context.Context, opts ...RequestOption) ([]TaxonomyVersion, error) {
+	params := processOptions(opts...)
 
-	var t []TaxonomyVersions
-
-	if params := processOptions(opts...).urlParams.Encode(); params != "" {
-		ebirdURL += "?" + params
-	}
-
-	err := c.get(ctx, ebirdURL, &t)
+	var versions []TaxonomyVersion
+	err := c.get(ctx, APIEndpoints.TaxonomyVersions, params.URLParams, &versions)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get taxonomy versions: %w", err)
 	}
 
-	return t, nil
+	return versions, nil
 }
 
-func (c *Client) TaxaLocaleCodes(ctx context.Context, opts ...RequestOption) ([]TaxaLocaleCodes, error) {
-	ebirdURL := APIEndpointTaxaLocaleCodes
+func (c *Client) TaxaLocaleCodes(ctx context.Context, opts ...RequestOption) ([]TaxaLocaleCode, error) {
+	params := processOptions(opts...)
 
-	var t []TaxaLocaleCodes
-
-	if params := processOptions(opts...).urlParams.Encode(); params != "" {
-		ebirdURL += "?" + params
-	}
-
-	err := c.get(ctx, ebirdURL, &t)
+	var codes []TaxaLocaleCode
+	err := c.get(ctx, APIEndpoints.TaxaLocaleCodes, params.URLParams, &codes)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get taxa locale codes: %w", err)
 	}
 
-	return t, nil
+	return codes, nil
 }
 
 func (c *Client) TaxonomicForms(ctx context.Context, speciesCode string, opts ...RequestOption) ([]string, error) {
@@ -96,37 +82,27 @@ func (c *Client) TaxonomicForms(ctx context.Context, speciesCode string, opts ..
 		return nil, fmt.Errorf("speciesCode cannot be empty")
 	}
 
-	ebirdURL := fmt.Sprintf(APIEndpointTaxonomicForms, speciesCode)
+	endpoint := fmt.Sprintf(APIEndpoints.TaxonomicForms, speciesCode)
+	params := processOptions(opts...)
 
-	var t []string
-
-	if params := processOptions(opts...).urlParams.Encode(); params != "" {
-		ebirdURL += "?" + params
-	}
-
-	err := c.get(ctx, ebirdURL, &t)
+	var forms []string
+	err := c.get(ctx, endpoint, params.URLParams, &forms)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get taxonomic forms: %w", err)
 	}
 
-	return t, nil
+	return forms, nil
 }
 
-func (c *Client) EbirdTaxonomy(ctx context.Context, opts ...RequestOption) ([]EbirdTaxonomy, error) {
-	ebirdURL := APIEndpointEbirdTaxonomy
+func (c *Client) EbirdTaxonomy(ctx context.Context, opts ...RequestOption) ([]EbirdTaxon, error) {
+	params := processOptions(opts...)
+	params.URLParams.Set("fmt", "json")
 
-	var t []EbirdTaxonomy
-
-	if params := processOptions(opts...).urlParams.Encode(); params != "" {
-		ebirdURL += "?" + params
-	}
-
-	ebirdURL = convertToJsonFormat(ebirdURL)
-
-	err := c.get(ctx, ebirdURL, &t)
+	var taxonomy []EbirdTaxon
+	err := c.get(ctx, APIEndpoints.EbirdTaxonomy, params.URLParams, &taxonomy)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get eBird taxonomy: %w", err)
 	}
 
-	return t, nil
+	return taxonomy, nil
 }
