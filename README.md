@@ -1,4 +1,4 @@
-# go-ebird: eBird API Client for Go
+# go-ebird: A Go client for easy access to eBird data
 
 [![GoDoc](https://godoc.org/github.com/siansiansu/go-ebird?status.svg)](http://godoc.org/github.com/siansiansu/go-ebird)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
